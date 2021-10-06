@@ -1,0 +1,220 @@
+import turtle
+from random import randint
+
+s = turtle.Screen()
+s.bgcolor("black")
+s.setup(700, 600)
+s.bgpic('C:\\Users\Patricia\Documents\Map_forest.png')
+
+H = []
+for j in range(2):
+    H.append(turtle.Turtle())
+
+H_energybar = []
+pos_bar = 0
+for j in range(2):
+    H_energybar.append(turtle.Turtle())
+    H_energybar[j].penup()
+    H_energybar[j].setx(-300)
+    H_energybar[j].sety(250 - pos_bar)
+    pos_bar += 50
+    
+E_h = [100, 100]
+
+C_h = [0, 0]
+    
+A = []
+for j in range(2):
+    A.append(turtle.Turtle())
+    A[j].penup()
+    A[j].goto(0, 50)
+    
+E_a = [60, 60]
+
+Carnes = []
+for j in range(2):
+    Carnes.append(30)
+
+H_cores = ["yellow", "blue"]
+
+ID = []
+
+Cap = []
+
+S = 0
+for i in range(1, 201):
+    s.update()
+    
+    #Addition of targets
+    if randint(0, 10) == 7:
+        A.append(turtle.Turtle())
+        A[-1].penup()
+        A[-1].goto(randint(-100, 100), randint(-100, 100))
+        E_a.append(60)
+        Carnes.append(30)
+        print("Surgiu a%d (%d segundos)" % (len(A), i))
+    
+    #Addition of hunters
+    if S > 0:
+        H.append(turtle.Turtle())
+        H_energybar.append(turtle.Turtle())
+        pos_bar = -50
+        for j in range(len(H_energybar)):
+            pos_bar += 50
+        H_energybar[-1].penup()
+        H_energybar[-1].setx(-300)
+        H_energybar[-1].sety(250 - pos_bar)
+        E_h.append(100)
+        C_h.append(0)
+        for y in range(len(E_h)):
+            if E_h[y] > 100:
+                E_h[y] -= 50
+                if H_cores[y] == "yellow":
+                    H_cores.append("yellow")
+                else:
+                    H_cores.append("blue")
+        S = 0
+        print("Surgiu h%d (%d segundos)" % (len(H), i))
+    
+    #Hunters' natural energy loss   
+    for j in range(len(E_h)):
+        E_h[j] -= 1
+        print("energia de h%d: %d" % (j + 1, E_h[j]))
+        if E_h[j] == 0:
+            H[j].ht()
+            print("h%d morreu (%d segundos)" % (j + 1, i))
+    
+    #Targets natural energy loss       
+    for j in range(len(E_a)):
+        if E_a[j] > -1:
+            E_a[j] -= 1
+            if E_a[j] == 0:
+                A[j].ht()
+                print("a%d morreu (%d segundos)" % (j + 1, i))
+    
+    #Hunters' meat consume   
+    for j in range(len(ID)):
+        if Carnes[ID[j][0]] > 0:
+            Carnes[ID[j][0]] -= 1
+            E_h[ID[j][1]] += 1
+            C_h[ID[j][1]] += 1
+            if E_h[ID[j][1]] > 100:
+                S += 1
+            if Carnes[ID[j][0]] == 0:
+                print("Acabou da carne %d (%d segundos)" % (ID[j][0] + 1, i))
+            
+    
+    #Hunters' quantity of energy
+    C = 0
+    for h in H_energybar:
+        if E_h[C] > 0:
+            h.shape("square")
+            h.color(H_cores[C])
+            h.penup()
+            h.clear()
+            h.write("    h%d energy: %d" % (C + 1, E_h[C]), move=False, align="left", font=("Arial", 18, "normal"))
+        else:
+            h.clear()
+            h.write("    h%d died" % (C + 1), move=False, align="left", font=("Arial", 18, "normal"))
+        C += 1
+    
+    
+    
+    #Hunters' movement
+    c = 0
+    Pos_h = []
+    for h in H: 
+        h.shape("arrow")
+        h.color(H_cores[c])
+        h.penup()
+        h.setx(h.xcor() + randint(-20, 20))
+        h.sety(h.ycor() + randint(-20, 20))
+        if h.xcor() > 100:
+            h.setx(100)
+        if h.xcor() < -100:
+            h.setx(-100)
+        if h.ycor() > 100:
+            h.sety(100)
+        if h.ycor() < -100:
+            h.sety(-100)
+        h.clear()
+        if E_h[c] > 0:
+            h.write("  h%d" % (c + 1), move=False, align="left", font=("Arial", 18, "normal"))
+        Pos_h.append([h.xcor(), h.ycor()])
+        c += 1
+        
+    
+    #Targets' movement
+    w = 0
+    for a in A:
+        a.shape("circle")
+        a.color("orange")
+        a.penup()
+        a.setx(a.xcor() + randint(-20, 20))
+        a.sety(a.ycor() + randint(-20, 20))
+        if a.xcor() > 100:
+            a.setx(100)
+        if a.xcor() < -100:
+            a.setx(-100)
+        if a.ycor() > 100:
+            a.sety(100)
+        if a.ycor() < -100:
+            a.sety(-100)
+        
+        #Targets being captured
+        for u in range(len(Pos_h)):
+            if a.xcor() - 15 <= Pos_h[u][0] <= a.xcor() + 15 and  a.ycor() - 15 <= Pos_h[u][1] <= a.ycor() + 15:
+                if E_h[u] > 0 and E_a[w] > 0:
+                    if w not in Cap:
+                        ID.append([w, u])
+                        print("h%d capturou a%d (%d segundos)" % (u + 1, w + 1, i))
+                        Cap.append(w)
+                        E_a[w] = -1
+                        a.ht()
+        w += 1
+        
+    
+    #Chock between two hunters
+    for j in range(len(H)):
+        for k in range(j + 1, len(H)):
+            if Pos_h[k][0] - 15 <= Pos_h[j][0] <= Pos_h[k][0] + 15 and Pos_h[k][1] - 15 <= Pos_h[j][1] <= Pos_h[k][1] + 15:
+                if E_h[j] > E_h[k]:
+                    for y in range(len(ID)):
+                        if Carnes[ID[y][0]] > 0:
+                            if ID[y][1] == k:
+                                print("h%d roubou %d gramas da carne %d de h%d (%d segundos)" % (j + 1, Carnes[ID[y][0]], ID[y][0] + 1, k + 1, i))
+                                ID[y][1] = j
+                elif E_h[j] < E_h[k]:
+                    for y in range(len(ID)):
+                        if Carnes[ID[y][0]] > 0:
+                            if ID[y][1] == j:
+                                print("h%d roubou %d gramas da carne %d de h%d (%d segundos)" % (k + 1, Carnes[ID[y][0]], ID[y][0] + 1, j + 1, i))
+                                ID[y][1] = k
+                else:
+                    if randint(0, 1) == 0:
+                        for y in range(len(ID)):
+                            if Carnes[ID[y][0]] > 0:
+                                if ID[y][1] == k:
+                                    print("h%d roubou %d gramas da carne %d de h%d (%d segundos)" % (j + 1, Carnes[ID[y][0]], ID[y][0] + 1, k + 1, i))
+                                    ID[y][1] = j
+                    else:
+                        for y in range(len(ID)):
+                            if Carnes[ID[y][0]] > 0:
+                                if ID[y][1] == j:
+                                    print("h%d roubou %d gramas da carne %d de h%d (%d segundos)" % (k + 1, Carnes[ID[y][0]], ID[y][0] + 1, j + 1, i))
+                                    ID[y][1] = k
+
+#Hunters' records
+for i in range(len(C_h)):
+    print("h%d (%s) consumiu %d gramas de carne" % (i + 1, H_cores[i], C_h[i]))
+
+#Total number of targets that appeared at some point during the simulation
+print("Número de alvos: %d" % (len(A)))
+
+#Number of hunters that survived until the end of the simulation
+print("Caçadores sobreviventes: ", end="")
+for i in range(len(E_h)):
+    if E_h[i] > 0:
+        print("h%d (%s)" % (i + 1, H_cores[i]), end="")
+    
+s.mainloop()
