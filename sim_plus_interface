@@ -174,7 +174,7 @@ for i in range(1, 201):
         w += 1
         
     
-    #Chock between two hunters
+    #Shock between two hunters
     for j in range(len(H)):
         for k in range(j + 1, len(H)):
             if Pos_h[k][0] - 15 <= Pos_h[j][0] <= Pos_h[k][0] + 15 and Pos_h[k][1] - 15 <= Pos_h[j][1] <= Pos_h[k][1] + 15:
